@@ -1,0 +1,13 @@
+# submission archives
+*.zip
+
+# build outputs
+nplab_server
+nplab_client
+*.o
+
+# lecture slides / course material
+asset/
+*_rules.pdf
+
+__pycache__/
