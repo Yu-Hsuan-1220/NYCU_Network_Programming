@@ -3,6 +3,8 @@
 
 # build outputs
 nplab_server
+nplab_server_single
+nplab_server_multi
 nplab_client
 *.o
 
