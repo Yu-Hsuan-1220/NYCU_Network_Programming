@@ -24,7 +24,7 @@
 //     CLOSE <room>                    -> OK   (room removed)
 // * child <-> child: TCP on 127.0.0.1. The host child listens on a port in
 //   [IPC_PORT_MIN, IPC_PORT_MAX]; the joining child asks the parent for that
-//   port and connects. Handshake: HELLO <name> / WELCOME / READY.
+//   port and connects. Handshake: HELLO <room> <name> / WELCOME / READY.
 //   Guest -> host: GUESS <n> | STATUS | QUIT.
 //   Host -> guest: OUT <escaped text> (show to the player), DONE (reply to
 //   the guest's request complete), END (game over; also completes a request).
@@ -184,7 +184,8 @@ protected:
         LineReader rd;
         if (s >= 0) {
             setRecvTimeout(s, 3);
-            if (!sendAll(s, "HELLO " + name + "\n") || !rd.readLine(s, line) || line != "WELCOME") {
+            if (!sendAll(s, "HELLO " + rs + " " + name + "\n") || !rd.readLine(s, line) ||
+                line != "WELCOME") {
                 close(s);
                 s = -1;
             }
@@ -283,8 +284,15 @@ private:
         setRecvTimeout(s, 3);
         LineReader rd;
         std::string line;
-        if (!rd.readLine(s, line) || line.compare(0, 6, "HELLO ") != 0) { close(s); return; }
-        std::string guestName = line.substr(6);
+        // HELLO <room> <name>: the room must be ours. (If our port was used
+        // by an earlier room, a late joiner of that room must not end up here.)
+        std::vector<std::string> hello;
+        if (!rd.readLine(s, line) || (hello = splitWords(line)).size() != 3 || hello[0] != "HELLO" ||
+            hello[1] != std::to_string(roomId)) {
+            close(s);
+            return;
+        }
+        std::string guestName = hello[2];
         if (!sendAll(s, "WELCOME\n") || !rd.readLine(s, line) || line != "READY") { close(s); return; }
 
         pfd_ = s;

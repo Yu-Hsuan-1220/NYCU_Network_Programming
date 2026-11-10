@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
         }
 
         // Server -> screen. recv() == 0 means the server closed the
-        // connection (after quit / three wins), so the client exits.
+        // connection (after quit), so the client exits.
         if (FD_ISSET(sock, &rfds)) {
             ssize_t n = recv(sock, buf, sizeof(buf), 0);
             if (n < 0 && errno == EINTR) continue;
